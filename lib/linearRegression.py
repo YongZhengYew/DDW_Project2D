@@ -7,34 +7,47 @@ pd.set_option("display.max_columns", 100)
 pd.set_option("display.max_rows", 100)
 
 class LinearRegression:
-    def __init__(self, df, yName, learningIncrement, numIter):
+    def __init__(self, name, df, yName, xNames, learningIncrement, numIter, transformDict=None):
+        self.name = name
         self.df = df
         self.yName = yName
+        self.xNames = xNames
         self.learningIncrement = learningIncrement
         self.numIter = numIter
+        self.transformDict = transformDict
 
-        self.initAllParams()
+        self.initMatrices()
 
+        self.bestFitY = None
+        self.latestTestResult = None
         self.bsHistory = []
         self.costHistory = []
     
-    def initAllParams(self):
-        def initXs():
-            self.xs = self.df[[column for column in self.df.columns if column != self.yName]]
-            self.xs = self.xs.to_numpy()
-            self.xs = np.insert(self.xs, 0, 1, axis=1)
-        def initY():
-            self.y = self.df[[self.yName]].to_numpy()
-        def initBs():
-            self.bs = np.ones((self.xs.shape[1], 1))
-        initXs()
-        initY()
-        initBs()
+    def prepareFeatures(self, df_features):
+        res = df_features.to_numpy()
+        res = np.insert(res, 0, 1, axis=1)
+        return res
 
-    def transform(self, dictColumnNames):
-        for oldColumn, (func, newColumn) in dictColumnNames.items():
-            self.df[newColumn] = self.df[oldColumn].apply(func)
-        self.initAllParams()
+    def initBs(self):
+        self.bs = np.ones((self.xs.shape[1], 1))
+
+    def transform(self):
+        for columnName, func in self.transformDict.items():
+            if columnName == self.yName:
+                self.y = np.apply_along_axis(func, 0, self.y)
+            elif columnName in self.xNames:
+                index = self.xNames.index(columnName)+1 # weird +1 because of initial column of rows
+                self.xs = np.insert(self.xs, index+1, np.apply_along_axis(func, 0, self.xs[:, index]), axis = 1)
+                self.initBs()
+            else:
+                raise ValueError("Column name unrecognized!")        
+
+    def initMatrices(self):
+        self.xs = self.df[self.xNames]
+        self.xs = self.prepareFeatures(self.xs)
+        self.y = self.df[[self.yName]].to_numpy()
+        self.initBs()
+        self.transform()
     
     def performRegression(self):
         def compute_cost():
@@ -55,40 +68,53 @@ class LinearRegression:
                     self.bs
                 ) - self.y
             ))
-        def plotBsLine():
-            self.bestFitY = np.matmul(self.xs, self.bs)
-            res = self.df.copy()
-            res = res.join(pd.Series(self.bestFitY.flatten(), name="BESTFITLINE"))
-            return res
 
         for _ in range(self.numIter):
             self.costHistory.append(compute_cost())
             self.bsHistory.append(self.bs)
             self.bs = incrementBs()
-        return plotBsLine()
+        self.bestFitY = np.matmul(self.xs, self.bs)
+ 
+    def prepareTestSection(self, testSection):
+        cols = list(testSection.columns)
+        testSection_features = testSection[self.xNames]
+        testSection_features = self.prepareFeatures(testSection_features)
+        for columnName, func in self.transformDict.items():
+            index = cols.index(columnName)+1
+            testSection_features = np.insert(testSection_features, index+1, np.apply_along_axis(func, 0, testSection_features[:, index]), axis = 1)
+        return testSection_features
     
-    def showHistory(self):
-        print(self.costHistory)
-        print("______________________________________")
-        print(self.bsHistory)
+    def predict(self, testSection):
+        testSection = self.prepareTestSection(testSection)
+        return np.matmul(testSection, self.bs)
 
+    def getHistories(self):
+        return self.bsHistory, self.costHistory
+    
+    def getJoinedDF(self):
+        res = self.df.copy().join(
+            pd.Series(self.bestFitY.copy().flatten(), name="BESTFITLINE")
+        )
+        return res
 
-df = pd.read_csv("testSPLR.csv")
+if __name__ == "__main__":
+    df = pd.read_csv("testSPLR.csv")
 
-rgs = LinearRegression(df, "coffee", 0.001, 1000)
-rgs.transform({
-    "donuts": (lambda x:x**2, "donutsSquared")
-})
-df_BFL = rgs.performRegression()
-rgs.showHistory()
+    rgs = LinearRegression("test", df, "coffee", ["donuts"], 0.001, 1000, {
+        "donuts": lambda x:x**2
+    })
 
-sns.scatterplot(
-    data=df_BFL,
-    y="BESTFITLINE",
-    x="donuts"
-)
+    rgs.performRegression()
+    df_BFL = rgs.getJoinedDF()
+    print(df_BFL)
 
-pd.reset_option("display.max_columns")
-pd.reset_option("display.max_rows")
+    sns.scatterplot(
+        data=df_BFL,
+        y="BESTFITLINE",
+        x="donuts"
+    )
+    print("HELLO")
+    pd.reset_option("display.max_columns")
+    pd.reset_option("display.max_rows")
 
-plt.show()
+    plt.show()
