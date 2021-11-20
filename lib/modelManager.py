@@ -3,6 +3,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import sys, os, inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+rootdir = os.path.dirname(os.path.dirname(currentdir))
+print(rootdir)
+sys.path.insert(0, inspect.getfile(inspect.currentframe()))
+
 from copy import copy
 
 from linearRegression import LinearRegression
