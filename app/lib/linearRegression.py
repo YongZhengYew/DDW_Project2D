@@ -93,7 +93,7 @@ class LinearRegression:
     
     def getJoinedDF(self):
         res = self.df.copy().join(
-            pd.Series(self.bestFitY.copy().flatten(), name="BESTFITLINE")
+            pd.Series(self.bestFitY.copy().flatten(), name="BESTFITLINE__"+self.id)
         )
         return res
 

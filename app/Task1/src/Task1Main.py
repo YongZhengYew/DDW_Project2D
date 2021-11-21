@@ -16,7 +16,8 @@ class Task1Main:
 
     def run(self):
         with resources.path("app.Task1.data", "owid-covid-data.csv") as rawData:
-            df = pd.read_csv(rawData)
+            df1 = pd.read_csv(rawData)
 
         m = MM.ModelManager()
-        m.addDF("df1", df)
+        m.addDF("df1", df1)
+        print(df1)
