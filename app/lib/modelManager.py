@@ -3,15 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-import sys, os, inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-rootdir = os.path.dirname(os.path.dirname(currentdir))
-print(rootdir)
-sys.path.insert(0, inspect.getfile(inspect.currentframe()))
-
-from copy import copy
-
-from linearRegression import LinearRegression
+from .linearRegression import LinearRegression
 
 class Recipe:
     def __init__(self, name, df, targetName, featureNameList):
@@ -87,27 +79,28 @@ class ModelManager:
 
         return testSection, trainSection
 
-m = ModelManager()
-m.addDF("testdf1", pd.read_csv("testSPLR.csv"))
-m.addRecipe("testrce1", "testdf1", "coffee", ["donuts"])
+if __name__ == "__main__":
+    m = ModelManager()
+    m.addDF("testdf1", pd.read_csv("testSPLR.csv"))
+    m.addRecipe("testrce1", "testdf1", "coffee", ["donuts"])
 
-for i in range(10):
-    m.addModel(
-        "testModel_"+str(i),
-        "testrce1",
-        0.001,
-        1000,
-        100,
-        0.2,
-        {
-            "donuts": lambda x:x**2
-        }
+    for i in range(10):
+        m.addModel(
+            "testModel_"+str(i),
+            "testrce1",
+            0.001,
+            1000,
+            100,
+            0.2,
+            {
+                "donuts": lambda x:x**2
+            }
+        )
+
+    res = m.getModel("testModel_1").getJoinedDF()
+    sns.scatterplot(
+        data=res,
+        y="BESTFITLINE",
+        x="donuts"
     )
-
-res = m.getModel("testModel_1").getJoinedDF()
-sns.scatterplot(
-    data=res,
-    y="BESTFITLINE",
-    x="donuts"
-)
-plt.show()
+    plt.show()
