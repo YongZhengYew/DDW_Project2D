@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 import math
 
 class QQPlot:
-    def __init__(self, df, invFuncParams, MAXWIDTH=4):
+    def __init__(self, df, invFuncParams, FIGSIZE=(16,10), HSPACE=0.4, WSPACE=0.4, MAXWIDTH=4):
+        self.FIGSIZE = FIGSIZE
+        self.HSPACE = HSPACE
+        self.WSPACE = WSPACE
         self.MAXWIDTH = MAXWIDTH
         self.columns = df.columns
         self.data = df.to_numpy()
-        #self.sortedData = np.apply_along_axis(np.sort, 1, dataDict)
         self.nPlusOne = self.data.shape[0] + 1
         self.invFuncParams = invFuncParams
         self.invFuncs = {
@@ -17,7 +19,8 @@ class QQPlot:
         }
     
     def plotAllGraphs(self, columnNames=None, invFuncParams=None):
-        fig = plt.figure()
+        fig = plt.figure(figsize=self.FIGSIZE)
+        fig.subplots_adjust(hspace=self.HSPACE, wspace=self.WSPACE)
         if columnNames is None:
             columnNames = list(self.columns)
         if invFuncParams is None:
@@ -41,8 +44,8 @@ class QQPlot:
         pairArr = np.empty((currData.shape[0], 2))
         for i, x in enumerate(currData):
             pairArr[i] = [
-                invFunc((i+1)/self.nPlusOne),
-                x
+                x,
+                invFunc((i+1)/self.nPlusOne)
             ]
         df = pd.DataFrame({
             "data": pairArr[:,0],
