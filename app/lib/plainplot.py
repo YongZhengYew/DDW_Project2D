@@ -15,7 +15,8 @@ class PlainPlot:
         self.xNames = xNames if xNames is not None else [column for column in df.columns if column != yName]
         self.df = df
         self.funcs = {
-            "identity": lambda x: x
+            "identity": lambda x: x,
+            "square": lambda x:x**2
         }
     
     def plotAllGraphs(self, xNames=None, funcNames=None):
