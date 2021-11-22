@@ -93,9 +93,17 @@ class LinearRegression:
     
     def getJoinedDF(self):
         res = self.df.copy().join(
-            pd.Series(self.bestFitY.copy().flatten(), name="BESTFITLINE__"+self.id)
+            pd.Series(self.bestFitY.copy().flatten(), name="BESTFITLINE")
         )
         return res
+    
+    def rSquared(self):
+        varMean = sum((self.y - np.mean(self.y))**2)
+        varLine = 0
+        for i, y in enumerate(self.y):
+            varLine += (self.bestFitY[i] - y)**2
+            print(self.bestFitY[i], y)
+        return (varMean-varLine)/varMean
 
 if __name__ == "__main__":
     df = pd.read_csv("testSPLR.csv")
@@ -114,6 +122,7 @@ if __name__ == "__main__":
         x="donuts"
     )
     print("HELLO")
+    print(rgs.rSquared())
     pd.reset_option("display.max_columns")
     pd.reset_option("display.max_rows")
 
