@@ -29,7 +29,7 @@ class LinearRegression:
         return res
 
     def initBs(self):
-        self.bs = np.ones((self.xs.shape[1], 1))
+        self.bs = np.zeros((self.xs.shape[1], 1))
 
     def transform(self):
         for columnName, func in self.transformDict.items():
@@ -68,7 +68,6 @@ class LinearRegression:
                     self.bs
                 ) - self.y
             ))
-
         for _ in range(self.numIter):
             self.costHistory.append(compute_cost())
             self.bsHistory.append(self.bs)

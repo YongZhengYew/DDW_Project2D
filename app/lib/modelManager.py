@@ -81,7 +81,7 @@ class ModelManager:
 
 if __name__ == "__main__":
     m = ModelManager()
-    m.addDF("testdf1", pd.read_csv("testSPLR.csv"))
+    m.addDF("testdf1", pd.read_csv("testMLR.csv"))
     m.addRecipe("testrce1", "testdf1", "coffee", ["donuts"])
 
     for i in range(10):
